@@ -1,7 +1,7 @@
 # Sets global variables for this Terraform project.
 
 variable app_name {
-  default = "task92d-prikshit"
+  default = "task92dprikshit"
 }
 
 variable resource_group_name {
