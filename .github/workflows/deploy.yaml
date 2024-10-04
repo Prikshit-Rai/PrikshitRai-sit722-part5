@@ -5,10 +5,9 @@
 # For real use you might want to restrict this to the "prod" branch.
 #
 
-name: Deploy microservice
+name: Delete microservice
 
 on:
-
   #
   # Allows deployment to be invoked manually through the GitHub Actions user interface.
   #
@@ -31,29 +30,19 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE.
       - uses: actions/checkout@v3
 
-      #
-      # Give execute permissions for the build script.
-      #
-      - name: Permission Build
-        run: chmod +x scripts/build-image.sh
+      # Azure login using Service Principal credentials from GitHub Secrets 
+      - name: Azure login
+        run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
 
       #
-      # Builds the Docker image.
+      # Give execute permissions for the delete script.
       #
-      - name: Build
-        run: scripts/build-image.sh
+      - name: Permission Delete
+        run: chmod +x scripts/delete.sh
 
-      #
-      # Give execute permissions for the build script.
-      #
-      - name: Permission Publish
-        run: chmod +x scripts/push-image.sh
-
-      #
-      # Publishes the Docker image to the container registry.
-      #
-      - name: Publish
-        run: scripts/push-image.sh
+      # Get AKS credentials
+      - name: Get AKS credentials
+        run: az aks get-credentials --resource-group ${{ vars.AZURE_RESOURCE_NAME }} --name ${{ vars.APP_NAME }} 
 
       #
       # Installs Kubectl and connects it to the cluster.
@@ -63,16 +52,10 @@ jobs:
       - uses: tale/kubectl-action@v1
         with:
           base64-kube-config: ${{ secrets.KUBE_CONFIG }}
-          kubectl-version: v1.24.2
-      
+          kubectl-version: "v${{ vars.AZURE_AKS_VERSION }}"
+          
       #
-      # Give execute permissions for the build script.
+      # Expands the configuration template and deletes the microservice.
       #
-      - name: Permission Deploy
-        run: chmod +x scripts/deploy.sh
-
-      #
-      # Expands the configuration template and deploys the microservice.
-      #
-      - name: Deploy
-        run: scripts/deploy.sh
+      - name: Delete
+        run: scripts/delete.sh
