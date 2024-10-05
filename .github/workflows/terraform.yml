@@ -73,7 +73,7 @@ jobs:
           sudo apt install gh -y
           sudo apt install jq -y
 
-      # Login to GitHub-CLI using token
+      # Login tot GitHub-CLI using token
       - name: GitHub-Cli login
         run: |
           echo "${{ secrets.TOKEN }}" | gh auth login --with-token
@@ -82,8 +82,8 @@ jobs:
       - name: Refresh terraform state
         run: terraform refresh
 
-      # Set Container registry, registry username, password, and kubernetes config
-- name: Set Secrets
+      # Set Container registry, registry username, password and kubernetes config
+      - name: Set Secrets
         run: |
           azure_container_registry_name=$(az acr list | jq -r '.[0].loginServer')
           gh secret set CONTAINER_REGISTRY --body "$azure_container_registry_name"
