@@ -84,14 +84,18 @@ jobs:
 
       # Set Container registry, registry username, password, and kubernetes config
 - name: Set Secrets
-        run: |
-          azure_container_registry_name=$(az acr list | jq -r '.[0].loginServer')
-          gh secret set CONTAINER_REGISTRY --body "$azure_container_registry_name"
+  run: |
+    # Get the Azure Container Registry name
+    azure_container_registry_name=$(az acr list --query "[0].name" -o tsv)
+    gh secret set CONTAINER_REGISTRY --body "${azure_container_registry_name}.azurecr.io"
 
-          az acr credential show --name "$azure_container_registry_name" --query "{username:username, passwords:passwords[0].value}" --output json > credentials.json
-          gh secret set REGISTRY_UN --body "$(cat credentials.json | jq -r '.username')"
-          gh secret set REGISTRY_PW --body "$(cat credentials.json | jq -r '.passwords')"
+    # Get the credentials for the ACR
+    az acr credential show --name "$azure_container_registry_name" --query "{username:username, passwords:passwords[0].value}" --output json > credentials.json
 
-          az aks get-credentials --resource-group ${{ vars.AZURE_RESOURCE_NAME }} --name ${{ vars.APP_NAME }}  
-          gh secret set KUBE_CONFIG --body "$(cat ~/.kube/config | base64 -w 0)"
+    # Set secrets for the ACR username and password
+    gh secret set REGISTRY_UN --body "$(cat credentials.json | jq -r '.username')"
+    gh secret set REGISTRY_PW --body "$(cat credentials.json | jq -r '.passwords')"
 
+    # Get Kubernetes credentials for AKS
+    az aks get-credentials --resource-group ${{ vars.AZURE_RESOURCE_NAME }} --name ${{ vars.APP_NAME }}  
+    gh secret set KUBE_CONFIG --body "$(cat ~/.kube/config | base64 -w 0)"
