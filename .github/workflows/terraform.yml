@@ -82,15 +82,31 @@ jobs:
       - name: Refresh terraform state
         run: terraform refresh
 
-      # Set Container registry, registry username, password and kubernetes config
-      - name: Set Secrets
-        run: |
-          azure_container_registry_name=$(az acr list | jq -r '.[0].loginServer')
-          gh secret set CONTAINER_REGISTRY --body "$azure_container_registry_name"
+      # Set Container registry, registry username, password, and kubernetes config
+- name: Set Secrets
+  run: |
+    # Retrieve the first ACR name in the list
+    azure_container_registry_name=$(az acr list --query "[0].name" -o tsv)
+    
+    # If there is no ACR listed, throw an error
+    if [ -z "$azure_container_registry_name" ]; then
+      echo "No Azure Container Registry found!"
+      exit 1
+    fi
 
-          az acr credential show --name "$azure_container_registry_name" --query "{username:username, passwords:passwords[0].value}" --output json > credentials.json
-          gh secret set REGISTRY_UN --body "$(cat credentials.json | jq -r '.username')"
-          gh secret set REGISTRY_PW --body "$(cat credentials.json | jq -r '.passwords')"
+    # Set the container registry secret
+    gh secret set CONTAINER_REGISTRY --body "$azure_container_registry_name.azurecr.io"
 
-          az aks get-credentials --resource-group ${{ vars.AZURE_RESOURCE_NAME }} --name ${{ vars.APP_NAME }}  
-          gh secret set KUBE_CONFIG --body "$(cat ~/.kube/config | base64 -w 0)"
+    # Retrieve ACR credentials
+    acr_credentials=$(az acr credential show --name "$azure_container_registry_name" --query "{username:username, password:passwords[0].value}" --output json)
+    
+    # Extract username and password and set GitHub secrets
+    acr_username=$(echo "$acr_credentials" | jq -r '.username')
+    acr_password=$(echo "$acr_credentials" | jq -r '.password')
+    gh secret set REGISTRY_UN --body "$acr_username"
+    gh secret set REGISTRY_PW --body "$acr_password"
+
+    # Get Kubernetes credentials and set kube config secret
+    az aks get-credentials --resource-group ${{ vars.AZURE_RESOURCE_NAME }} --name ${{ vars.APP_NAME }} --overwrite-existing
+    gh secret set KUBE_CONFIG --body "$(cat ~/.kube/config | base64 -w 0)"
+
