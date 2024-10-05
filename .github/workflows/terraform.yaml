@@ -83,7 +83,7 @@ jobs:
         run: terraform refresh
 
       # Set Container registry, registry username, password and kubernetes config
-- name: Set Secrets
+      - name: Set Secrets
         run: |
           azure_container_registry_name=$(az acr list | jq -r '.[0].loginServer')
           gh secret set CONTAINER_REGISTRY --body "$azure_container_registry_name"
