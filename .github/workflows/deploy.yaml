@@ -71,7 +71,7 @@ jobs:
       - uses: tale/kubectl-action@v1
         with:
           base64-kube-config: ${{ secrets.KUBE_CONFIG }}
-          kubectl-version: "v${{ vars.AZURE_AKS_VERSION }}"
+          kubectl-version: "1.29.2"
       
       #
       # Give execute permissions for the build script.
