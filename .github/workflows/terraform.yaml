@@ -92,5 +92,5 @@ jobs:
           gh secret set REGISTRY_UN --body "$(cat credentials.json | jq -r '.username')"
           gh secret set REGISTRY_PW --body "$(cat credentials.json | jq -r '.passwords')"
           
-          az aks get-credentials --resource-group flixtube --name task92dprikshit
+          az aks get-credentials --resource-group task92dprikshit --name task92dprikshit
           gh secret set KUBE_CONFIG --body "$(cat ~/.kube/config | base64 -w 0)"
