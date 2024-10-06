@@ -55,6 +55,14 @@ jobs:
       - name: Publish
         run: scripts/push-image.sh
 
+      # Azure login using Service Principal credentials from GitHub Secrets 
+      - name: Azure login
+        run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+
+      # Get AKS credentials
+      - name: Get AKS credentials
+        run: az aks get-credentials --resource-group task92dprikshit --name task92dprikshit --overwrite-existing
+
       #
       # Installs Kubectl and connects it to the cluster.
       #
