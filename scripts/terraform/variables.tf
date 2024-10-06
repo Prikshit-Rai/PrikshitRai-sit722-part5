@@ -5,7 +5,7 @@ variable app_name {
 }
 
 variable resource_group_name {
-  default = "flixtube.azurecr.io"
+  default = "task92dprikshit.azurecr.io"
 }
 
 variable location {
