@@ -18,5 +18,23 @@ set -u # or set -o nounset
 : "$VERSION"
 : "$DATABASE_URL"
 
+# Retry function
+function retry {
+    local n=1
+    local max=5
+    local delay=5
+    while true; do
+        "$@" && return
+        if [[ $n -lt $max ]]; then
+            echo "Retrying in $delay seconds... ($n/$max)"
+            sleep $delay
+            ((n++))
+        else
+            echo "Command failed after $n attempts."
+            return 1
+        fi
+    done
+}
+
 envsubst < ./scripts/kubernetes/deployment.yaml | kubectl apply -f -
 envsubst < ./scripts/kubernetes/service.yaml | kubectl apply -f -
