@@ -42,7 +42,7 @@ jobs:
 
       # Get AKS credentials
       - name: Get AKS credentials
-        run: az aks get-credentials --resource-group ${{ vars.AZURE_RESOURCE_NAME }} --name ${{ vars.APP_NAME }} 
+        run: az aks get-credentials --resource-group task92dprikshit --name task92dprikshit 
 
       #
       # Installs Kubectl and connects it to the cluster.
